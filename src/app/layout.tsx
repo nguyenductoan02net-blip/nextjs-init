@@ -8,6 +8,8 @@ import { ReactNode } from 'react';
 import { AppProvider } from '@/app/provider';
 import { getUserQueryOptions } from '@/lib/auth';
 
+import NextTopLoader from 'nextjs-toploader';
+
 import '@/styles/globals.css';
 
 export const metadata = {
@@ -27,6 +29,7 @@ const RootLayout = async ({ children }: { children: ReactNode }) => {
       <body>
         <AppProvider>
           <HydrationBoundary state={dehydratedState}>
+            <NextTopLoader color="#2563eb" showSpinner={false} />
             {children}
           </HydrationBoundary>
         </AppProvider>
