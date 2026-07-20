@@ -7,6 +7,7 @@ import { Form, FormDrawer, Input, Textarea } from '@/components/ui/form';
 import { useNotifications } from '@/components/ui/notifications';
 import { useUser } from '@/lib/auth';
 
+import { FieldError } from 'react-hook-form';
 import {
   updateProfileInputSchema,
   useUpdateProfile,
@@ -65,24 +66,24 @@ export const UpdateProfile = () => {
           <>
             <Input
               label="First Name"
-              error={formState.errors['firstName']}
+              error={formState.errors['firstName'] as FieldError}
               registration={register('firstName')}
             />
             <Input
               label="Last Name"
-              error={formState.errors['lastName']}
+              error={formState.errors['lastName'] as FieldError}
               registration={register('lastName')}
             />
             <Input
               label="Email Address"
               type="email"
-              error={formState.errors['email']}
+              error={formState.errors['email'] as FieldError}
               registration={register('email')}
             />
 
             <Textarea
               label="Bio"
-              error={formState.errors['bio']}
+              error={formState.errors['bio'] as FieldError}
               registration={register('bio')}
             />
           </>
