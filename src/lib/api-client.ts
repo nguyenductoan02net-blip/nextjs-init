@@ -1,5 +1,6 @@
 import { useNotifications } from '@/components/ui/notifications';
 import { env } from '@/config/env';
+import { AUTH_TOKEN_COOKIE_NAME } from '@/utils/auth';
 type RequestOptions = {
   method?: string;
   headers?: Record<string, string>;
@@ -49,6 +50,8 @@ export function getServerCookies() {
   });
 }
 
+const getApiBaseUrl = () =>
+  typeof window === 'undefined' ? env.API_URL : '/api/backend';
 
 async function fetchApi<T>(
   url: string,
@@ -62,7 +65,7 @@ async function fetchApi<T>(
     params,
     cache = 'no-store',
     next,
-    baseUrl = env.API_URL,
+    baseUrl = getApiBaseUrl(),
   } = options;
 
   // Get cookies from the request when running on server
@@ -80,6 +83,19 @@ async function fetchApi<T>(
       Accept: 'application/json',
       ...headers,
       ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      ...(cookieHeader?.includes(`${AUTH_TOKEN_COOKIE_NAME}=`) &&
+      !headers.Authorization
+        ? {
+            Authorization: `Bearer ${cookieHeader
+              .split('; ')
+              .find((cookieValue) =>
+                cookieValue.startsWith(`${AUTH_TOKEN_COOKIE_NAME}=`),
+              )
+              ?.split('=')
+              .slice(1)
+              .join('=')}`,
+          }
+        : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'include',
@@ -88,7 +104,8 @@ async function fetchApi<T>(
   });
 
   if (!response.ok) {
-    const message = (await response.json()).message || response.statusText;
+    const errorBody = await response.json().catch(() => null);
+    const message = errorBody?.message || response.statusText;
     if (typeof window !== 'undefined') {
       useNotifications.getState().addNotification({
         type: 'error',
@@ -123,5 +140,4 @@ export function createApiClient(defaultBaseUrl?: string) {
 }
 
 // Client cho Server chính
-export const api = createApiClient(env.API_URL);
-console.log(env.API_URL)
+export const api = createApiClient();

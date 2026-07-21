@@ -10,6 +10,7 @@ import {
   FieldPath,
   FieldValues,
   FormProvider,
+  Resolver,
   SubmitHandler,
   UseFormProps,
   UseFormReturn,
@@ -92,7 +93,7 @@ const FormItem = React.forwardRef<
 FormItem.displayName = 'FormItem';
 
 const FormLabel = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({ className, ...props }, ref) => {
   const { error, formItemId } = useFormField();
@@ -109,7 +110,7 @@ const FormLabel = React.forwardRef<
 FormLabel.displayName = 'FormLabel';
 
 const FormControl = React.forwardRef<
-  React.ElementRef<typeof Slot>,
+  React.ComponentRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
 >(({ ...props }, ref) => {
   const { error, formItemId, formDescriptionId, formMessageId } =
@@ -172,27 +173,42 @@ const FormMessage = React.forwardRef<
 });
 FormMessage.displayName = 'FormMessage';
 
-type FormProps<TFormValues extends FieldValues, Schema> = {
-  onSubmit: SubmitHandler<TFormValues>;
+type FormInput<Schema extends ZodType> = z.input<Schema> extends FieldValues
+  ? z.input<Schema>
+  : FieldValues;
+
+type FormOutput<Schema extends ZodType> = z.output<Schema> extends FieldValues
+  ? z.output<Schema>
+  : FieldValues;
+
+type FormProps<Schema extends ZodType> = {
+  onSubmit: SubmitHandler<FormOutput<Schema>>;
   schema: Schema;
   className?: string;
-  children: (methods: UseFormReturn<TFormValues>) => React.ReactNode;
-  options?: UseFormProps<TFormValues>;
+  children: (
+    methods: UseFormReturn<FormInput<Schema>, any, FormOutput<Schema>>,
+  ) => React.ReactNode;
+  options?: UseFormProps<FormInput<Schema>, any, FormOutput<Schema>>;
   id?: string;
 };
 
-const Form = <
-  Schema extends ZodType<any, any, any>,
-  TFormValues extends FieldValues = z.infer<Schema>,
->({
+const Form = <Schema extends ZodType>({
   onSubmit,
   children,
   className,
   options,
   id,
   schema,
-}: FormProps<TFormValues, Schema>) => {
-  const form = useForm({ ...options, resolver: zodResolver(schema) });
+}: FormProps<Schema>) => {
+  const resolver = zodResolver(schema as any) as unknown as Resolver<
+    FormInput<Schema>,
+    any,
+    FormOutput<Schema>
+  >;
+  const form = useForm<FormInput<Schema>, any, FormOutput<Schema>>({
+    ...options,
+    resolver,
+  });
   return (
     <FormProvider {...form}>
       <form
@@ -207,13 +223,8 @@ const Form = <
 };
 
 export {
-  useFormField,
-  Form,
-  FormProvider,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
-  FormField,
+  Form, FormControl,
+  FormDescription, FormField, FormItem,
+  FormLabel, FormMessage, FormProvider, useFormField
 };
+
