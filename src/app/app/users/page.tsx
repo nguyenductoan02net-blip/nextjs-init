@@ -1,4 +1,4 @@
-import { ContentLayout } from '@/components/layouts/content-layout';
+import { ContentLayout } from '@/components/layouts/content-layout/content-layout';
 
 import { AdminGuard } from './_components/admin-guard';
 import { Users } from './_components/users';
