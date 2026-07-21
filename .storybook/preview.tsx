@@ -1,8 +1,12 @@
-import React from 'react';
+import type { Preview } from '@storybook/nextjs';
 import '../src/styles/globals.css';
 
-export const parameters = {
-  actions: { argTypesRegex: '^on[A-Z].*' },
+const preview: Preview = {
+  parameters: {
+    actions: { argTypesRegex: '^on[A-Z].*' },
+  },
+  tags: ['autodocs'],
+  decorators: [(Story) => <Story />],
 };
 
-export const decorators = [(Story) => <Story />];
+export default preview;
